@@ -54,6 +54,7 @@ size_t strlen(const char* str)
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
+#define DELAY_COUNT 50000000 // Adjust value depending on CPU speed
 
 size_t terminal_row;
 size_t terminal_column;
@@ -87,6 +88,8 @@ void terminal_putentryat(const char c, const uint8_t color, const size_t x, cons
     terminal_buffer[index] = vga_entry(c, color);
 }
 
+// In case the terminal is filled up, move all rows up one row and discard the uppermost, and
+// leave a blank row at the bottom ready to be filled up with characters.
 void scroll_terminal(void)
 {
     terminal_column = 0;
@@ -155,12 +158,13 @@ void kernel_main(void)
     /* Initialize terminal interface */
     terminal_initialize();
 
+    // test for terminal scrolling
     for (int i = 0; i < 30; i++)
     {
         terminal_writestring("Line ");
         terminal_putchar('0' + (i / 10));
         terminal_putchar('0' + (i % 10));
         terminal_putchar('\n');
-        delay(50000000); // Adjust value depending on CPU speed
+        delay(DELAY_COUNT);
     }
 }
