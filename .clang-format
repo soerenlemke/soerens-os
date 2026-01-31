@@ -1,0 +1,49 @@
+# .clang-format — C project, readable + stable diffs
+Language: C
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Line length
+ColumnLimit: 100
+
+# Braces (Allman style)
+BreakBeforeBraces: Allman
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterEnum: true
+
+# Keep control flow readable
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Empty
+
+# Pointers / references
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceBeforeSquareBrackets: false
+
+# Switch/case and preprocessor
+IndentCaseLabels: false
+IndentPPDirectives: None
+
+# Comments
+ReflowComments: true
+SpacesBeforeTrailingComments: 1
+
+# Includes
+SortIncludes: true
+IncludeBlocks: Preserve
