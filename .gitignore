@@ -1,0 +1,25 @@
+# ===== Build output =====
+/build/
+/myos.iso
+/isodir/boot/myos
+
+# ===== Object files =====
+*.o
+*.ko
+*.obj
+
+# ===== Dependency files =====
+*.d
+
+# ===== Debug / tool output =====
+*.map
+*.log
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.dwo
+
+# ===== Editors / OS =====
+.DS_Store
+.vscode/
