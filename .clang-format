@@ -1,5 +1,5 @@
 # .clang-format — C project, readable + stable diffs
-Language: C
+Language: Cpp
 BasedOnStyle: LLVM
 
 # Indentation

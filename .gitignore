@@ -23,3 +23,4 @@
 # ===== Editors / OS =====
 .DS_Store
 .vscode/
+.idea/

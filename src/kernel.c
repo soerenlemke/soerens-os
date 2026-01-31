@@ -96,8 +96,8 @@ void terminal_putchar(char c)
             terminal_row = 0;
         return;
     }
-    if (c == '\r')
-    { // carriage return// carriage return
+    if (c == '\r') // carriage return// carriage return
+    {
         terminal_column = 0;
         return;
     }
@@ -107,7 +107,9 @@ void terminal_putchar(char c)
     {
         terminal_column = 0;
         if (++terminal_row == VGA_HEIGHT)
+        {
             terminal_row = 0;
+        }
     }
 }
 
