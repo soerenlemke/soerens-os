@@ -4,7 +4,10 @@ TARGET ?= i686-elf
 CC := $(PREFIX)/bin/$(TARGET)-gcc
 AS := $(PREFIX)/bin/$(TARGET)-as
 
-CFLAGS  := -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+# Include paths for headers
+INCLUDES := -I src/drivers -I src/lib
+
+CFLAGS  := -std=gnu99 -ffreestanding -O2 -Wall -Wextra $(INCLUDES)
 LDFLAGS := -T linker.ld -ffreestanding -O2 -nostdlib
 
 BUILD   := build
@@ -12,7 +15,10 @@ ISO_DIR := isodir
 KERNEL  := $(BUILD)/myos.elf
 ISO     := myos.iso
 
-OBJS := $(BUILD)/boot.o $(BUILD)/kernel.o
+OBJS := $(BUILD)/boot.o \
+        $(BUILD)/kernel.o \
+        $(BUILD)/vga.o \
+        $(BUILD)/string.o
 
 .PHONY: all clean iso run-iso run-kernel
 
@@ -26,7 +32,13 @@ $(BUILD):
 $(BUILD)/boot.o: src/boot.s | $(BUILD)
 	$(AS) $< -o $@
 
-$(BUILD)/kernel.o: src/kernel.c | $(BUILD)
+$(BUILD)/kernel.o: src/kernel/kernel.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/vga.o: src/drivers/vga.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/string.o: src/lib/string.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # --- link ---
