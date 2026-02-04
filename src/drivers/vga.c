@@ -51,22 +51,37 @@ static void scroll_terminal(void)
 }
 
 /**
- * @brief Writes a character with color to the terminal buffer at the specified coordinates.
+ * @brief Writes a character entry to the VGA terminal buffer at the specified coordinates.
  *
- * @param c The character to write to the terminal.
- * @param color The VGA color attribute for the character.
- * @param x The x-coordinate (column) position on the terminal.
- * @param y The y-coordinate (row) position on the terminal.
+ * Places a character with the given color attribute at position (x, y) in the VGA terminal.
+ * If the coordinates exceed the terminal dimensions, they are clamped to the maximum valid values.
  *
- * @note This function directly manipulates the VGA terminal buffer at the calculated index.
- *       No bounds checking is performed; the caller must ensure x and y are within valid ranges.
+ * @param c The character to write to the terminal buffer.
+ * @param color The color attribute for the character (foreground and background colors).
+ * @param x The x-coordinate (column) where the character should be written.
+ * @param y The y-coordinate (row) where the character should be written.
+ *
+ * @note Coordinates are automatically clamped to valid ranges:
+ *       x is clamped to [0, VGA_WIDTH - 1]
+ *       y is clamped to [0, VGA_HEIGHT - 1]
  */
-static void terminal_putentryat(const char c, const uint8_t color, const size_t x, const size_t y)
+static void terminal_putentryat(const char c, const uint8_t color, size_t x, size_t y)
 {
-    const size_t index = y * VGA_WIDTH + x;
-    terminal_buffer[index] = vga_entry(c, color);
+    size_t clamped_x = x;
+    size_t clamped_y = y;
 
-    // TODO: add bounds checking
+    if (clamped_x >= VGA_WIDTH)
+    {
+        clamped_x = VGA_WIDTH - 1;
+    }
+
+    if (clamped_y >= VGA_HEIGHT)
+    {
+        clamped_y = VGA_HEIGHT - 1;
+    }
+
+    const size_t index = clamped_y * VGA_WIDTH + clamped_x;
+    terminal_buffer[index] = vga_entry(c, color);
 }
 
 /* ========================================================================
