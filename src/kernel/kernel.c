@@ -27,13 +27,18 @@ void kernel_main(void)
     /* Initialize terminal interface */
     terminal_initialize();
 
-    // test for terminal scrolling
-    for (int i = 0; i < 30; i++)
+    while (1)
     {
-        terminal_writestring("Line ");
-        terminal_putchar('0' + (i / 10));
-        terminal_putchar('0' + (i % 10));
-        terminal_putchar('\n');
+        terminal_draw_ascii_dunk_scene_one();
         delay(DELAY_COUNT);
+        terminal_initialize();
+
+        terminal_draw_ascii_dunk_scene_two();
+        delay(DELAY_COUNT);
+        terminal_initialize();
+
+        terminal_draw_ascii_dunk_scene_three();
+        delay(DELAY_COUNT);
+        terminal_initialize();
     }
 }

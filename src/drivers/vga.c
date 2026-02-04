@@ -86,18 +86,17 @@ uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
     return fg | bg << 4;
 }
-refactor : enhance terminal handling with improved scrolling and
-               /**
-                * @brief Creates a VGA text mode entry with character and color attributes.
-                *
-                * @param uc The character to display.
-                * @param color The color attribute (foreground and background color).
-                *
-                * @return A 16-bit value combining the character in the lower byte and color in the
-                * upper byte.
-                */
-               uint16_t
-               vga_entry(const unsigned char uc, const uint8_t color)
+
+/**
+ * @brief Creates a VGA text mode entry with character and color attributes.
+ *
+ * @param uc The character to display.
+ * @param color The color attribute (foreground and background color).
+ *
+ * @return A 16-bit value combining the character in the lower byte and color in the
+ * upper byte.
+ */
+uint16_t vga_entry(const unsigned char uc, const uint8_t color)
 {
     return (uint16_t)uc | (uint16_t)color << 8;
 }
@@ -204,4 +203,55 @@ void terminal_write(const char* data, const size_t size)
 void terminal_writestring(const char* data)
 {
     terminal_write(data, strlen(data));
+}
+
+/**
+ * terminal_draw_ascii_dunk_scene_one - Draws a ASCII art dunk scene to the terminal
+ *
+ * Outputs a simple ASCII art representation of a basketball dunk scene,
+ * including a figure performing a dunk with a basketball hoop.
+ *
+ * Returns: void
+ */
+void terminal_draw_ascii_dunk_scene_one(void)
+{
+    terminal_writestring("   |    o\\\n");
+    terminal_writestring("|==|__    O\n");
+    terminal_writestring("|  'WW    /\\\n");
+    terminal_writestring("           /\\__\n");
+    terminal_writestring("           \\\n");
+}
+
+/**
+ * terminal_draw_ascii_dunk_scene_two - Draws a ASCII art dunk scene to the terminal
+ *
+ * Outputs a simple ASCII art representation of a basketball dunk scene,
+ * including a figure performing a dunk with a basketball hoop.
+ *
+ * Returns: void
+ */
+void terminal_draw_ascii_dunk_scene_two(void)
+{
+    terminal_writestring("   | o\\\n");
+    terminal_writestring("|==|_  \\O/\n");
+    terminal_writestring("|  'WW  |\n");
+    terminal_writestring("         /\\\n");
+    terminal_writestring("        /  \\\n");
+}
+
+/**
+ * terminal_draw_ascii_dunk_scene_three - Draws a ASCII art dunk scene to the terminal
+ *
+ * Outputs a simple ASCII art representation of a basketball dunk scene,
+ * including a figure performing a dunk with a basketball hoop.
+ *
+ * Returns: void
+ */
+void terminal_draw_ascii_dunk_scene_three(void)
+{
+    terminal_writestring("   |\n");
+    terminal_writestring("|==O\n");
+    terminal_writestring("|  |WW \\o/\n");
+    terminal_writestring("        |\n");
+    terminal_writestring("       / \\\n");
 }
