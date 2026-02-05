@@ -53,11 +53,10 @@ static void scroll_terminal(void)
 /**
  * @brief Writes a character entry to the VGA terminal buffer at the specified coordinates.
  *
- * Places a character with the given color attribute at position (x, y) in the VGA terminal.
+ * Places a character at position (x, y) in the VGA terminal using the current terminal color.
  * If the coordinates exceed the terminal dimensions, they are clamped to the maximum valid values.
  *
  * @param c The character to write to the terminal buffer.
- * @param color The color attribute for the character (foreground and background colors).
  * @param x The x-coordinate (column) where the character should be written.
  * @param y The y-coordinate (row) where the character should be written.
  *
@@ -65,7 +64,7 @@ static void scroll_terminal(void)
  *       x is clamped to [0, VGA_WIDTH - 1]
  *       y is clamped to [0, VGA_HEIGHT - 1]
  */
-static void terminal_putentryat(const char c, const uint8_t color, size_t x, size_t y)
+static void terminal_putentryat(const char c, const size_t x, const size_t y)
 {
     size_t clamped_x = x;
     size_t clamped_y = y;
@@ -81,7 +80,7 @@ static void terminal_putentryat(const char c, const uint8_t color, size_t x, siz
     }
 
     const size_t index = clamped_y * VGA_WIDTH + clamped_x;
-    terminal_buffer[index] = vga_entry(c, color);
+    terminal_buffer[index] = vga_entry(c, terminal_color);
 }
 
 /* ========================================================================
@@ -143,19 +142,6 @@ void terminal_initialize(void)
 }
 
 /**
- * Sets the current terminal color for subsequent text output.
- *
- * @param color The color value to set. Should be a combination of foreground
- *              and background colors as defined in the VGA color palette.
- *
- * @return void
- */
-void terminal_setcolor(const uint8_t color)
-{
-    terminal_color = color;
-}
-
-/**
  * @brief Outputs a single character to the terminal display.
  *
  * Handles special characters (newline and carriage return) and writes
@@ -163,6 +149,7 @@ void terminal_setcolor(const uint8_t color)
  * the terminal when the end of a line is reached.
  *
  * @param c The character to output to the terminal.
+ * @param color The color attribute to use for the character (foreground and background).
  *
  * @details
  * - '\n' (newline): Scrolls the terminal down.
@@ -171,8 +158,13 @@ void terminal_setcolor(const uint8_t color)
  *   using the current terminal color. If the column reaches VGA_WIDTH,
  *   the terminal is scrolled and the cursor wraps to the next line.
  */
-void terminal_putchar(const char c)
+void terminal_putchar(const char c, const uint8_t color)
 {
+    if (color)
+    {
+        terminal_color = color;
+    }
+
     if (c == '\n')
     {
         scroll_terminal();
@@ -184,7 +176,7 @@ void terminal_putchar(const char c)
         return;
     }
 
-    terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
+    terminal_putentryat(c, terminal_column, terminal_row);
     if (++terminal_column == VGA_WIDTH)
     {
         scroll_terminal();
@@ -202,7 +194,7 @@ void terminal_putchar(const char c)
 void terminal_write(const char* data, const size_t size)
 {
     for (size_t i = 0; i < size; i++)
-        terminal_putchar(data[i]);
+        terminal_putchar(data[i], terminal_color);
 }
 
 /**
