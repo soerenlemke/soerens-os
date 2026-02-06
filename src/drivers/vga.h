@@ -38,15 +38,9 @@ extern size_t terminal_column;
 extern uint8_t terminal_color;
 extern uint16_t* terminal_buffer;
 
-uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg);
-uint16_t vga_entry(unsigned char uc, uint8_t color);
-
 void terminal_initialize(void);
-void terminal_putchar(char c, uint8_t color);
+void terminal_setcolor(uint8_t foreground, uint8_t background);
 void terminal_write(const char* data, size_t size);
 void terminal_writestring(const char* data);
-void terminal_draw_ascii_dunk_scene_one(void);
-void terminal_draw_ascii_dunk_scene_two(void);
-void terminal_draw_ascii_dunk_scene_three(void);
 
 #endif // VGA_H

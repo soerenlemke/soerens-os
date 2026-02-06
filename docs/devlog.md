@@ -3,11 +3,13 @@
 ## 2026-01-31 - 2026-02-04
 - Started following the Bare Bones tutorial
 - Implemented VGA text mode
-- Added a ASCII scene for testing
+- Added an ASCII scene for testing
 - Created a simple Makefile for building the kernel and creating a bootable image
-- Tested the kernel in QEMU and it successfully displayed the ASCII scene
+- Tested the kernel in QEMU, it successfully displayed the ASCII scene
 - Added support for newline characters to the terminal driver
 - implemented terminal scrolling when the text exceeds the screen height
 
-## 2026-02-05 - 
+## 2026-02-05 - 2026-02-06
 - working on rendering colorful ASCII art
+- GitHub pages deployment for documentation
+- refactoring the codebase to minimize public API in vga module

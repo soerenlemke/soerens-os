@@ -19,6 +19,34 @@ uint16_t* terminal_buffer = (uint16_t*)VGA_MEMORY;
  * ======================================================================== */
 
 /**
+ * @brief Combines foreground and background VGA colors into a single color byte.
+ *
+ * @param fg The foreground color (lower 4 bits).
+ * @param bg The background color (upper 4 bits).
+ *
+ * @return A single byte where the lower 4 bits represent the foreground color
+ *         and the upper 4 bits represent the background color.
+ */
+static uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
+{
+    return fg | bg << 4;
+}
+
+/**
+ * @brief Creates a VGA text mode entry with character and color attributes.
+ *
+ * @param uc The character to display.
+ * @param color The color attribute (foreground and background color).
+ *
+ * @return A 16-bit value combining the character in the lower byte and color in the
+ * upper byte.
+ */
+static uint16_t vga_entry(const unsigned char uc, const uint8_t color)
+{
+    return (uint16_t)uc | (uint16_t)color << 8;
+}
+
+/**
  * scroll_terminal - Scrolls the terminal display up by one line
  *
  * When the terminal reaches the bottom of the display, this function
@@ -83,37 +111,51 @@ static void terminal_putentryat(const char c, const size_t x, const size_t y)
     terminal_buffer[index] = vga_entry(c, terminal_color);
 }
 
+/**
+ * @brief Outputs a single character to the terminal display.
+ *
+ * Handles special characters (newline and carriage return) and writes
+ * regular characters to the current cursor position. Automatically scrolls
+ * the terminal when the end of a line is reached.
+ *
+ * @param c The character to output to the terminal.
+ * @param color The color attribute to use for the character (foreground and background).
+ *
+ * @details
+ * - '\n' (newline): Scrolls the terminal down.
+ * - '\r' (carriage return): Resets the column to the start of the line.
+ * - Other characters: Writes the character at the current cursor position
+ *   using the current terminal color. If the column reaches VGA_WIDTH,
+ *   the terminal is scrolled and the cursor wraps to the next line.
+ */
+static void terminal_putchar(const char c, const uint8_t color)
+{
+    if (color)
+    {
+        terminal_color = color;
+    }
+
+    if (c == '\n')
+    {
+        scroll_terminal();
+        return;
+    }
+    if (c == '\r') // carriage return
+    {
+        terminal_column = 0;
+        return;
+    }
+
+    terminal_putentryat(c, terminal_column, terminal_row);
+    if (++terminal_column == VGA_WIDTH)
+    {
+        scroll_terminal();
+    }
+}
+
 /* ========================================================================
  * Public Function Declarations
  * ======================================================================== */
-
-/**
- * @brief Combines foreground and background VGA colors into a single color byte.
- *
- * @param fg The foreground color (lower 4 bits).
- * @param bg The background color (upper 4 bits).
- *
- * @return A single byte where the lower 4 bits represent the foreground color
- *         and the upper 4 bits represent the background color.
- */
-uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
-{
-    return fg | bg << 4;
-}
-
-/**
- * @brief Creates a VGA text mode entry with character and color attributes.
- *
- * @param uc The character to display.
- * @param color The color attribute (foreground and background color).
- *
- * @return A 16-bit value combining the character in the lower byte and color in the
- * upper byte.
- */
-uint16_t vga_entry(const unsigned char uc, const uint8_t color)
-{
-    return (uint16_t)uc | (uint16_t)color << 8;
-}
 
 /**
  * @brief Initializes the VGA terminal.
@@ -138,48 +180,6 @@ void terminal_initialize(void)
             const size_t index = y * VGA_WIDTH + x;
             terminal_buffer[index] = vga_entry(' ', terminal_color);
         }
-    }
-}
-
-/**
- * @brief Outputs a single character to the terminal display.
- *
- * Handles special characters (newline and carriage return) and writes
- * regular characters to the current cursor position. Automatically scrolls
- * the terminal when the end of a line is reached.
- *
- * @param c The character to output to the terminal.
- * @param color The color attribute to use for the character (foreground and background).
- *
- * @details
- * - '\n' (newline): Scrolls the terminal down.
- * - '\r' (carriage return): Resets the column to the start of the line.
- * - Other characters: Writes the character at the current cursor position
- *   using the current terminal color. If the column reaches VGA_WIDTH,
- *   the terminal is scrolled and the cursor wraps to the next line.
- */
-void terminal_putchar(const char c, const uint8_t color)
-{
-    if (color)
-    {
-        terminal_color = color;
-    }
-
-    if (c == '\n')
-    {
-        scroll_terminal();
-        return;
-    }
-    if (c == '\r') // carriage return
-    {
-        terminal_column = 0;
-        return;
-    }
-
-    terminal_putentryat(c, terminal_column, terminal_row);
-    if (++terminal_column == VGA_WIDTH)
-    {
-        scroll_terminal();
     }
 }
 
@@ -213,52 +213,19 @@ void terminal_writestring(const char* data)
 }
 
 /**
- * terminal_draw_ascii_dunk_scene_one - Draws a ASCII art dunk scene to the terminal
+ * @brief Sets the terminal text color by combining foreground and background colors.
  *
- * Outputs a simple ASCII art representation of a basketball dunk scene,
- * including a figure performing a dunk with a basketball hoop.
+ * This function updates the global `terminal_color` variable by combining the
+ * specified foreground and background colors into a single VGA color byte.
  *
- * Returns: void
+ * @param foreground The foreground color (lower 4 bits of the VGA color byte).
+ *                   This should be a value from the `vga_color` enum.
+ * @param background The background color (upper 4 bits of the VGA color byte).
+ *                   This should be a value from the `vga_color` enum.
+ *
+ * @return void
  */
-void terminal_draw_ascii_dunk_scene_one(void)
+void terminal_setcolor(const uint8_t foreground, const uint8_t background)
 {
-    terminal_writestring("   |    o\\\n");
-    terminal_writestring("|==|__    O\n");
-    terminal_writestring("|  'WW    /\\\n");
-    terminal_writestring("           /\\__\n");
-    terminal_writestring("           \\\n");
-}
-
-/**
- * terminal_draw_ascii_dunk_scene_two - Draws a ASCII art dunk scene to the terminal
- *
- * Outputs a simple ASCII art representation of a basketball dunk scene,
- * including a figure performing a dunk with a basketball hoop.
- *
- * Returns: void
- */
-void terminal_draw_ascii_dunk_scene_two(void)
-{
-    terminal_writestring("   | o\\\n");
-    terminal_writestring("|==|_  \\O/\n");
-    terminal_writestring("|  'WW  |\n");
-    terminal_writestring("         /\\\n");
-    terminal_writestring("        /  \\\n");
-}
-
-/**
- * terminal_draw_ascii_dunk_scene_three - Draws a ASCII art dunk scene to the terminal
- *
- * Outputs a simple ASCII art representation of a basketball dunk scene,
- * including a figure performing a dunk with a basketball hoop.
- *
- * Returns: void
- */
-void terminal_draw_ascii_dunk_scene_three(void)
-{
-    terminal_writestring("   |\n");
-    terminal_writestring("|==O\n");
-    terminal_writestring("|  |WW \\o/\n");
-    terminal_writestring("        |\n");
-    terminal_writestring("       / \\\n");
+    terminal_color = vga_entry_color(foreground, background);
 }
