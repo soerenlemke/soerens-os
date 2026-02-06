@@ -10,6 +10,6 @@
 - implemented terminal scrolling when the text exceeds the screen height
 
 ## 2026-02-05 - 2026-02-06
-- working on rendering colorful ASCII art
+- implemented rendering colorful ASCII art with example in kernel main function
 - GitHub pages deployment for documentation
 - refactoring the codebase to minimize public API in vga module
