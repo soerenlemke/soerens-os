@@ -8,13 +8,14 @@ https://wiki.osdev.org/Bare_Bones
 
 ## Implemented Features
 
-| Feature            | Status | Notes                       |
-|--------------------|--------|-----------------------------|
-| Newline Support    | ✅      | `\n` and `\r` are handled   |
-| Terminal Scrolling | ✅      | Busy-wait delay for testing |
+| Feature                      | Status |
+|------------------------------|--------|
+| Newline Support              | ✅      |
+| Terminal Scrolling           | ✅      |
+| Rendering Colorful ASCII Art | ✅      |
 
 ## TODOs Bare Bones
 
-- Rendering Colorful ASCII Art
 - Calling Global Constructors
-
+- Meaty Skeleton
+- Going further
