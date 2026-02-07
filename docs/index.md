@@ -6,3 +6,4 @@ A simple operating system implementation based on the [Bare Bones tutorial](http
 
 - [Learnings & Notes](learnings.md)
 - [Development Log](devlog.md)
+- [macOS Setup Guide](mac-setup.md)
