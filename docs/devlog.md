@@ -13,3 +13,7 @@
 - implemented rendering colorful ASCII art with example in kernel main function
 - GitHub pages deployment for documentation
 - refactoring the codebase to minimize public API in vga module
+
+## 2026-02-07
+- build project on macOS
+- added documentation for setting up cross-compilation toolchain on macOS
