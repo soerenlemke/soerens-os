@@ -1,69 +1,136 @@
-PREFIX ?= $(HOME)/opt/cross
-TARGET ?= i686-elf
+# ==============================================================================
+# SoerensOS Makefile - Meaty Skeleton Structure
+# ==============================================================================
 
-CC := $(PREFIX)/bin/$(TARGET)-gcc
-AS := $(PREFIX)/bin/$(TARGET)-as
+# Cross-compiler settings
+PREFIX  ?= $(HOME)/opt/cross
+TARGET  ?= i686-elf
+ARCH    := i386
 
-# Include paths for headers
-INCLUDES := -I src/drivers -I src/lib
+CC      := $(PREFIX)/bin/$(TARGET)-gcc
+AS      := $(PREFIX)/bin/$(TARGET)-as
+AR      := $(PREFIX)/bin/$(TARGET)-ar
 
-CFLAGS  := -std=gnu99 -ffreestanding -O2 -Wall -Wextra $(INCLUDES)
-LDFLAGS := -T linker.ld -ffreestanding -O2 -nostdlib
+# Directories
+BUILD     := build
+SYSROOT   := $(BUILD)/sysroot
+ISO_DIR   := isodir
 
-BUILD   := build
-ISO_DIR := isodir
-KERNEL  := $(BUILD)/myos.elf
-ISO     := myos.iso
+# Output files
+KERNEL    := $(BUILD)/soerens-os.kernel
+ISO       := soerens-os.iso
 
-OBJS := $(BUILD)/boot.o \
-        $(BUILD)/kernel.o \
-        $(BUILD)/vga.o \
-        $(BUILD)/string.o
+# Compiler flags
+CFLAGS    := -std=gnu99 -ffreestanding -O2 -Wall -Wextra -g
+CPPFLAGS  := -D__is_kernel -Ikernel/include
+LDFLAGS   := -ffreestanding -O2 -nostdlib
+LIBS      := -lgcc
 
-.PHONY: all clean iso run-iso run-kernel
+# ==============================================================================
+# Libc
+# ==============================================================================
+
+LIBC_CFLAGS   := $(CFLAGS) -Ilibc/include
+LIBC_CPPFLAGS := -D__is_libc
+
+LIBC_OBJS := \
+	$(BUILD)/libc/string/strlen.o \
+	$(BUILD)/libc/string/memcmp.o \
+	$(BUILD)/libc/string/memcpy.o \
+	$(BUILD)/libc/string/memmove.o \
+	$(BUILD)/libc/string/memset.o
+
+LIBC := $(BUILD)/libc.a
+
+# ==============================================================================
+# Kernel
+# ==============================================================================
+
+KERNEL_CFLAGS   := $(CFLAGS) -Ilibc/include -Ikernel/include
+KERNEL_CPPFLAGS := -D__is_kernel
+KERNEL_LDFLAGS  := -T kernel/arch/$(ARCH)/linker.ld $(LDFLAGS)
+
+KERNEL_OBJS := \
+	$(BUILD)/kernel/arch/$(ARCH)/boot.o \
+	$(BUILD)/kernel/arch/$(ARCH)/tty.o \
+	$(BUILD)/kernel/kernel/kernel.o
+
+# ==============================================================================
+# Build Rules
+# ==============================================================================
+
+.PHONY: all clean iso run-kernel run-iso
 
 all: $(KERNEL)
 
-# --- build dir ---
+# Create build directories
 $(BUILD):
 	mkdir -p $(BUILD)
 
-# --- compile ---
-$(BUILD)/boot.o: src/boot.s | $(BUILD)
+$(BUILD)/libc/string:
+	mkdir -p $(BUILD)/libc/string
+
+$(BUILD)/kernel/arch/$(ARCH):
+	mkdir -p $(BUILD)/kernel/arch/$(ARCH)
+
+$(BUILD)/kernel/kernel:
+	mkdir -p $(BUILD)/kernel/kernel
+
+# ------------------------------------------------------------------------------
+# Libc build rules
+# ------------------------------------------------------------------------------
+
+$(BUILD)/libc/string/%.o: libc/string/%.c | $(BUILD)/libc/string
+	$(CC) $(LIBC_CFLAGS) $(LIBC_CPPFLAGS) -c $< -o $@
+
+$(LIBC): $(LIBC_OBJS)
+	$(AR) rcs $@ $(LIBC_OBJS)
+
+# ------------------------------------------------------------------------------
+# Kernel build rules
+# ------------------------------------------------------------------------------
+
+$(BUILD)/kernel/arch/$(ARCH)/boot.o: kernel/arch/$(ARCH)/boot.s | $(BUILD)/kernel/arch/$(ARCH)
 	$(AS) $< -o $@
 
-$(BUILD)/kernel.o: src/kernel/kernel.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BUILD)/kernel/arch/$(ARCH)/tty.o: kernel/arch/$(ARCH)/tty.c | $(BUILD)/kernel/arch/$(ARCH)
+	$(CC) $(KERNEL_CFLAGS) $(KERNEL_CPPFLAGS) -c $< -o $@
 
-$(BUILD)/vga.o: src/drivers/vga.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BUILD)/kernel/kernel/kernel.o: kernel/kernel/kernel.c | $(BUILD)/kernel/kernel
+	$(CC) $(KERNEL_CFLAGS) $(KERNEL_CPPFLAGS) -c $< -o $@
 
-$(BUILD)/string.o: src/lib/string.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(KERNEL): $(KERNEL_OBJS) $(LIBC) kernel/arch/$(ARCH)/linker.ld
+	$(CC) $(KERNEL_LDFLAGS) $(KERNEL_OBJS) $(LIBC) $(LIBS) -o $@
 
-# --- link ---
-$(KERNEL): $(OBJS) linker.ld
-	$(CC) $(LDFLAGS) $(OBJS) -o $@ -lgcc
+# ------------------------------------------------------------------------------
+# ISO build
+# ------------------------------------------------------------------------------
 
-# --- stage kernel for ISO (GRUB expects /boot/myos) ---
-$(ISO_DIR)/boot/myos: $(KERNEL)
+$(ISO_DIR)/boot/soerens-os: $(KERNEL)
 	mkdir -p $(ISO_DIR)/boot
-	cp $(KERNEL) $(ISO_DIR)/boot/myos
+	cp $(KERNEL) $(ISO_DIR)/boot/soerens-os
 
-# --- ISO ---
-$(ISO): $(ISO_DIR)/boot/myos $(ISO_DIR)/boot/grub/grub.cfg
+$(ISO): $(ISO_DIR)/boot/soerens-os $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(ISO) $(ISO_DIR)
 
 iso: $(ISO)
 
-# --- run ---
+# ------------------------------------------------------------------------------
+# Run targets
+# ------------------------------------------------------------------------------
+
 run-kernel: $(KERNEL)
-	env -u LD_LIBRARY_PATH -u LD_PRELOAD qemu-system-i386 -kernel $(KERNEL)
+	qemu-system-i386 -kernel $(KERNEL)
 
 run-iso: $(ISO)
-	env -u LD_LIBRARY_PATH -u LD_PRELOAD qemu-system-i386 -cdrom $(ISO)
+	qemu-system-i386 -cdrom $(ISO)
+
+# ------------------------------------------------------------------------------
+# Clean
+# ------------------------------------------------------------------------------
 
 clean:
 	rm -rf $(BUILD)
 	rm -f $(ISO)
-	rm -f $(ISO_DIR)/boot/myos
+	rm -f $(ISO_DIR)/boot/soerens-os
+
