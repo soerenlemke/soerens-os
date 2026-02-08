@@ -1,9 +1,10 @@
 /* Declare constants for the multiboot header. */
-.set ALIGN,    1<<0             /* align loaded modules on page boundaries */
-.set MEMINFO,  1<<1             /* provide memory map */
-.set FLAGS,    ALIGN | MEMINFO  /* this is the Multiboot 'flag' field */
-.set MAGIC,    0x1BADB002       /* 'magic number' lets bootloader find the header */
-.set CHECKSUM, -(MAGIC + FLAGS) /* checksum of above, to prove we are multiboot */
+.set ALIGN,    1<<0                         /* align loaded modules on page boundaries */
+.set MEMINFO,  1<<1                         /* provide memory map */
+.set VIDMODE,  1<<2                         /* Video mode info */
+.set FLAGS,    ALIGN | MEMINFO | VIDMODE    /* this is the Multiboot 'flag' field */
+.set MAGIC,    0x1BADB002                   /* 'magic number' lets bootloader find the header */
+.set CHECKSUM, -(MAGIC + FLAGS)             /* checksum of above, to prove we are multiboot */
 
 /*
 Declare a multiboot header that marks the program as a kernel. These are magic
@@ -17,6 +18,17 @@ forced to be within the first 8 KiB of the kernel file.
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
+/* a.out kludge fields (unused, but required before video fields) */
+.long 0         /* header_addr */
+.long 0         /* load_addr */
+.long 0         /* load_end_addr */
+.long 0         /* bss_end_addr */
+.long 0         /* entry_addr */
+/* Video mode fields */
+.long 0         /* mode_type (0 = linear framebuffer, 1 = EGA text) */
+.long 1024      /* width */
+.long 768       /* height */
+.long 32        /* depth (bits per pixel) */
 
 /*
 The multiboot standard does not define the value of the stack pointer register

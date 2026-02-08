@@ -20,7 +20,7 @@ make run-iso
 ### 1. Install Homebrew packages
 
 ```bash
-brew install gmp mpfr libmpc xorriso qemu nasm
+brew install gmp mpfr libmpc xorriso qemu nasm objconv
 ```
 
 ### 2. Build the i686-elf Cross-Compiler
@@ -70,21 +70,32 @@ export PATH="$HOME/opt/cross/bin:$PATH"
 
 Then restart the terminal or run `source ~/.zshrc`.
 
-### 4. Verify installation
+### 4. Build GRUB for ISO creation
+
+GRUB is needed to create bootable ISO images:
+
+```bash
+make build-grub
+```
+
+This will download and compile GRUB 2.06 to `~/opt/grub`. This is a one-time setup.
+
+### 5. Verify installation
 
 ```bash
 i686-elf-gcc --version
+~/opt/grub/bin/grub-mkrescue --version
 ```
 
 ---
 
 ## Make Commands
 
-| Command | Description |
-|---------|-------------|
-| `make` | Compile the kernel |
-| `make iso` | Create ISO image |
-| `make run-iso` | Run ISO in QEMU |
+| Command           | Description                 |
+|-------------------|-----------------------------|
+| `make`            | Compile the kernel          |
+| `make iso`        | Create ISO image            |
+| `make run-iso`    | Run ISO in QEMU             |
 | `make run-kernel` | Run kernel directly in QEMU |
-| `make clean` | Delete build files |
+| `make clean`      | Delete build files          |
 

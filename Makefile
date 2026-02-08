@@ -106,14 +106,62 @@ $(KERNEL): $(KERNEL_OBJS) $(LIBC) kernel/arch/$(ARCH)/linker.ld
 # ISO build
 # ------------------------------------------------------------------------------
 
+# GRUB installation path (set via: export GRUB_PREFIX=/path/to/grub)
+GRUB_PREFIX ?= $(HOME)/opt/grub
+
 $(ISO_DIR)/boot/soerens-os: $(KERNEL)
 	mkdir -p $(ISO_DIR)/boot
 	cp $(KERNEL) $(ISO_DIR)/boot/soerens-os
 
+# Build ISO - requires grub-mkrescue (system or custom built)
 $(ISO): $(ISO_DIR)/boot/soerens-os $(ISO_DIR)/boot/grub/grub.cfg
-	grub-mkrescue -o $(ISO) $(ISO_DIR)
+	@if command -v grub-mkrescue >/dev/null 2>&1; then \
+		echo "Using system grub-mkrescue..."; \
+		grub-mkrescue -o $(ISO) $(ISO_DIR); \
+	elif [ -x "$(GRUB_PREFIX)/bin/grub-mkrescue" ]; then \
+		echo "Using $(GRUB_PREFIX)/bin/grub-mkrescue..."; \
+		$(GRUB_PREFIX)/bin/grub-mkrescue -o $(ISO) $(ISO_DIR); \
+	else \
+		echo ""; \
+		echo "ERROR: grub-mkrescue not found!"; \
+		echo ""; \
+		echo "To build GRUB for i386-elf on macOS, run:"; \
+		echo "  make build-grub"; \
+		echo ""; \
+		echo "Or set GRUB_PREFIX to your GRUB installation:"; \
+		echo "  export GRUB_PREFIX=/path/to/grub"; \
+		echo ""; \
+		exit 1; \
+	fi
 
 iso: $(ISO)
+
+# Build GRUB for i386-elf (one-time setup for macOS)
+.PHONY: build-grub
+build-grub:
+	@echo "Building GRUB for i386-elf target..."
+	@mkdir -p ~/src/grub-build
+	@cd ~/src && \
+	if [ ! -f grub-2.06.tar.xz ]; then \
+		curl -O https://ftp.gnu.org/gnu/grub/grub-2.06.tar.xz; \
+	fi && \
+	tar -xf grub-2.06.tar.xz && \
+	cd grub-build && \
+	../grub-2.06/configure \
+		--prefix=$(GRUB_PREFIX) \
+		--target=i386-elf \
+		--disable-werror \
+		--with-platform=pc \
+		TARGET_CC=$(CC) \
+		TARGET_OBJCOPY=$(PREFIX)/bin/$(TARGET)-objcopy \
+		TARGET_STRIP=$(PREFIX)/bin/$(TARGET)-strip \
+		TARGET_NM=$(PREFIX)/bin/$(TARGET)-nm \
+		TARGET_RANLIB=$(PREFIX)/bin/$(TARGET)-ranlib && \
+	make -j$$(sysctl -n hw.ncpu) && \
+	make install
+	@echo ""
+	@echo "GRUB installed to $(GRUB_PREFIX)"
+	@echo "You can now run: make iso"
 
 # ------------------------------------------------------------------------------
 # Run targets
@@ -123,6 +171,26 @@ run-kernel: $(KERNEL)
 	qemu-system-i386 -kernel $(KERNEL)
 
 run-iso: $(ISO)
+	qemu-system-i386 -cdrom $(ISO)
+
+# ------------------------------------------------------------------------------
+# Docker build (recommended for macOS)
+# ------------------------------------------------------------------------------
+
+DOCKER_IMAGE := soerens-os-builder
+
+.PHONY: docker-build docker-iso docker-run
+
+# Build the Docker image (one-time) - force amd64 for grub-pc-bin
+docker-build:
+	docker build --platform linux/amd64 -t $(DOCKER_IMAGE) .
+
+# Build ISO using Docker
+docker-iso: docker-build
+	docker run --platform linux/amd64 --rm -v "$(shell pwd)":/src $(DOCKER_IMAGE) make clean iso
+
+# Build ISO and run in QEMU
+docker-run: docker-iso
 	qemu-system-i386 -cdrom $(ISO)
 
 # ------------------------------------------------------------------------------

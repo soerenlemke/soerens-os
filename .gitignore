@@ -1,7 +1,7 @@
 # ===== Build output =====
 /build/
-/myos.iso
-/isodir/boot/myos
+*.iso
+/isodir/boot/soerens-os
 
 # ===== Object files =====
 *.o
