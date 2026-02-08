@@ -27,7 +27,7 @@ uint16_t* terminal_buffer = (uint16_t*)VGA_MEMORY;
  * @return A single byte where the lower 4 bits represent the foreground color
  *         and the upper 4 bits represent the background color.
  */
-static uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
+static uint8_t vga_entry_color(const enum vga_color fg, const enum vga_color bg)
 {
     return fg | bg << 4;
 }
@@ -57,7 +57,6 @@ static uint16_t vga_entry(const unsigned char uc, const uint8_t color)
  */
 static void scroll_terminal(void)
 {
-    terminal_column = 0;
     if (++terminal_row == VGA_HEIGHT)
     {
         for (size_t y = 0; y < VGA_HEIGHT - 1; y++)
@@ -76,6 +75,8 @@ static void scroll_terminal(void)
         }
         terminal_row = VGA_HEIGHT - 1;
     }
+
+    terminal_column = 0;
 }
 
 /**
@@ -111,48 +112,6 @@ static void terminal_putentryat(const char c, const size_t x, const size_t y)
     terminal_buffer[index] = vga_entry(c, terminal_color);
 }
 
-/**
- * @brief Outputs a single character to the terminal display.
- *
- * Handles special characters (newline and carriage return) and writes
- * regular characters to the current cursor position. Automatically scrolls
- * the terminal when the end of a line is reached.
- *
- * @param c The character to output to the terminal.
- * @param color The color attribute to use for the character (foreground and background).
- *
- * @details
- * - '\n' (newline): Scrolls the terminal down.
- * - '\r' (carriage return): Resets the column to the start of the line.
- * - Other characters: Writes the character at the current cursor position
- *   using the current terminal color. If the column reaches VGA_WIDTH,
- *   the terminal is scrolled and the cursor wraps to the next line.
- */
-static void terminal_putchar(const char c, const uint8_t color)
-{
-    if (color)
-    {
-        terminal_color = color;
-    }
-
-    if (c == '\n')
-    {
-        scroll_terminal();
-        return;
-    }
-    if (c == '\r') // carriage return
-    {
-        terminal_column = 0;
-        return;
-    }
-
-    terminal_putentryat(c, terminal_column, terminal_row);
-    if (++terminal_column == VGA_WIDTH)
-    {
-        scroll_terminal();
-    }
-}
-
 /* ========================================================================
  * Public Function Declarations
  * ======================================================================== */
@@ -161,7 +120,7 @@ static void terminal_putchar(const char c, const uint8_t color)
  * @brief Initializes the VGA terminal.
  *
  * Sets up the terminal by resetting the cursor position to (0, 0),
- * setting the default color to light grey text on a black background,
+ * setting the default color to light gray text on a black background,
  * and clearing the entire terminal buffer by filling it with blank
  * characters in the default color.
  *
@@ -225,7 +184,74 @@ void terminal_writestring(const char* data)
  *
  * @return void
  */
-void terminal_setcolor(const uint8_t foreground, const uint8_t background)
+void terminal_setcolor(const enum vga_color foreground, const enum vga_color background)
 {
     terminal_color = vga_entry_color(foreground, background);
+}
+
+
+/**
+ * @brief Clears the entire VGA terminal screen.
+ *
+ * This function resets the terminal display by filling the entire VGA buffer
+ * with blank characters (' ') using the current terminal color. It also resets
+ * the cursor position to the top-left corner of the screen (row 0, column 0).
+ *
+ * @return void
+ */
+void terminal_clear(void)
+{
+    for (size_t y = 0; y < VGA_HEIGHT; y++)
+    {
+        for (size_t x = 0; x < VGA_WIDTH; x++)
+        {
+            const size_t index = y * VGA_WIDTH + x;
+            terminal_buffer[index] = vga_entry(' ', terminal_color);
+        }
+    }
+
+    terminal_row = 0;
+    terminal_column = 0;
+}
+
+/**
+ * @brief Outputs a single character to the terminal display.
+ *
+ * Handles special characters (newline and carriage return) and writes
+ * regular characters to the current cursor position. Automatically scrolls
+ * the terminal when the end of a line is reached.
+ *
+ * @param c The character to output to the terminal.
+ * @param color The color attribute to use for the character (foreground and background).
+ *
+ * @details
+ * - '\n' (newline): Scrolls the terminal down.
+ * - '\r' (carriage return): Resets the column to the start of the line.
+ * - Other characters: Writes the character at the current cursor position
+ *   using the current terminal color. If the column reaches VGA_WIDTH,
+ *   the terminal is scrolled and the cursor wraps to the next line.
+ */
+void terminal_putchar(const char c, const uint8_t color)
+{
+    if (color)
+    {
+        terminal_color = color;
+    }
+
+    if (c == '\n')
+    {
+        scroll_terminal();
+        return;
+    }
+    if (c == '\r')
+    {
+        terminal_column = 0;
+        return;
+    }
+
+    terminal_putentryat(c, terminal_column, terminal_row);
+    if (++terminal_column == VGA_WIDTH)
+    {
+        scroll_terminal();
+    }
 }

@@ -1,6 +1,6 @@
 #include "vga.h"
 
-#include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 /* Check if the compiler thinks you are targeting the wrong operating system. */
@@ -30,7 +30,7 @@ void kernel_main(void)
     uint8_t color_index = 0;
     const uint8_t num_colors = 16;
 
-    while (1)
+    while (true)
     {
         uint8_t bg_color = color_index % num_colors;
         uint8_t fg_color = (color_index + 8) % num_colors;

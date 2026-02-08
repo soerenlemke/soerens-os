@@ -39,8 +39,11 @@ extern uint8_t terminal_color;
 extern uint16_t* terminal_buffer;
 
 void terminal_initialize(void);
-void terminal_setcolor(uint8_t foreground, uint8_t background);
+void terminal_setcolor(enum vga_color foreground, enum vga_color background);
 void terminal_write(const char* data, size_t size);
 void terminal_writestring(const char* data);
+void terminal_clear(void);
+void terminal_newline(void);
+void terminal_putchar(char c, uint8_t color);
 
 #endif // VGA_H
