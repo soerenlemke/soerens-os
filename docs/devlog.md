@@ -26,3 +26,4 @@
 - cleanup & refactor
 - add new functions to public API of vga module
 - add new functions for setting the cursor position, clearing the screen and public api newline
+- add docker support for building the project in a consistent environment across different host OSes
