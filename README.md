@@ -8,14 +8,10 @@ https://wiki.osdev.org/Bare_Bones
 
 ## Implemented Features
 
-| Feature                      | Status |
-|------------------------------|--------|
-| Newline Support              | ✅      |
-| Terminal Scrolling           | ✅      |
-| Rendering Colorful ASCII Art | ✅      |
-
-## TODOs Bare Bones
-
-- Calling Global Constructors
-- Meaty Skeleton
-- Going further
+| Feature                    | Status |
+|----------------------------|--------|
+| Cross Compiler Toolchain   | ✅      |
+| Multiboot Compliant Kernel | ✅      |
+| VGA Text Mode Driver       | ✅      |
+| Terminal Scrolling         | ✅      |
+| Custom Text Colors         | ✅      |

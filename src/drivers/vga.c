@@ -9,10 +9,9 @@
  * Private Variables
  * ======================================================================== */
 
-size_t terminal_row;
-size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer = (uint16_t*)VGA_MEMORY;
+terminal_cursor_position cursor_position = {.row = 0, .column = 0};
 
 /* ========================================================================
  * Private Function Declarations
@@ -57,7 +56,7 @@ static uint16_t vga_entry(const unsigned char uc, const uint8_t color)
  */
 static void scroll_terminal(void)
 {
-    if (++terminal_row == VGA_HEIGHT)
+    if (++cursor_position.row == VGA_HEIGHT)
     {
         for (size_t y = 0; y < VGA_HEIGHT - 1; y++)
         {
@@ -73,10 +72,10 @@ static void scroll_terminal(void)
             const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
             terminal_buffer[index] = vga_entry(' ', terminal_color);
         }
-        terminal_row = VGA_HEIGHT - 1;
+        cursor_position.row = VGA_HEIGHT - 1;
     }
 
-    terminal_column = 0;
+    cursor_position.column = 0;
 }
 
 /**
@@ -128,8 +127,8 @@ static void terminal_putentryat(const char c, const size_t x, const size_t y)
  */
 void terminal_initialize(void)
 {
-    terminal_row = 0;
-    terminal_column = 0;
+    cursor_position.row = 0;
+    cursor_position.column = 0;
     terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 
     for (size_t y = 0; y < VGA_HEIGHT; y++)
@@ -189,7 +188,6 @@ void terminal_setcolor(const enum vga_color foreground, const enum vga_color bac
     terminal_color = vga_entry_color(foreground, background);
 }
 
-
 /**
  * @brief Clears the entire VGA terminal screen.
  *
@@ -210,8 +208,18 @@ void terminal_clear(void)
         }
     }
 
-    terminal_row = 0;
-    terminal_column = 0;
+    cursor_position.row = 0;
+    cursor_position.column = 0;
+}
+
+/**
+ * @brief Moves the cursor to the beginning of the next line.
+ *
+ * Scrolls the terminal content up if necessary when reaching the bottom.
+ */
+void terminal_newline(void)
+{
+    scroll_terminal();
 }
 
 /**
@@ -245,13 +253,45 @@ void terminal_putchar(const char c, const uint8_t color)
     }
     if (c == '\r')
     {
-        terminal_column = 0;
+        cursor_position.column = 0;
         return;
     }
 
-    terminal_putentryat(c, terminal_column, terminal_row);
-    if (++terminal_column == VGA_WIDTH)
+    terminal_putentryat(c, cursor_position.column, cursor_position.row);
+    if (++cursor_position.column == VGA_WIDTH)
     {
         scroll_terminal();
     }
+}
+
+/**
+ * @brief Sets the cursor position in the terminal.
+ *
+ * This function updates the cursor position in the terminal to the specified
+ * row and column values. If the provided values exceed the terminal dimensions,
+ * they are clamped to the maximum valid values.
+ *
+ * @param row The desired row position for the cursor (0-based index).
+ * @param column The desired column position for the cursor (0-based index).
+ *
+ * @note The row value is clamped to the range [0, VGA_HEIGHT - 1].
+ *       The column value is clamped to the range [0, VGA_WIDTH - 1].
+ */
+void terminal_set_cursor_position(const size_t row, const size_t column)
+{
+    size_t clamped_column = row;
+    size_t clamped_row = column;
+
+    if (clamped_column >= VGA_WIDTH)
+    {
+        clamped_column = VGA_WIDTH - 1;
+    }
+
+    if (clamped_row >= VGA_HEIGHT)
+    {
+        clamped_row = VGA_HEIGHT - 1;
+    }
+
+    cursor_position.row = clamped_row;
+    cursor_position.column = clamped_column;
 }

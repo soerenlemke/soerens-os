@@ -33,10 +33,21 @@ enum vga_color
     VGA_COLOR_WHITE = 15,
 };
 
-extern size_t terminal_row;
-extern size_t terminal_column;
+/**
+ * @brief Structure representing the cursor position in the terminal.
+ *
+ * This structure stores the current position of the cursor in the terminal
+ * as row and column indices.
+ */
+typedef struct
+{
+    size_t row;    /**< The row position of the cursor in the terminal. */
+    size_t column; /**< The column position of the cursor in the terminal. */
+} terminal_cursor_position;
+
 extern uint8_t terminal_color;
 extern uint16_t* terminal_buffer;
+extern terminal_cursor_position cursor_position;
 
 void terminal_initialize(void);
 void terminal_setcolor(enum vga_color foreground, enum vga_color background);
@@ -45,5 +56,6 @@ void terminal_writestring(const char* data);
 void terminal_clear(void);
 void terminal_newline(void);
 void terminal_putchar(char c, uint8_t color);
+void terminal_set_cursor_position(size_t row, size_t column);
 
 #endif // VGA_H
