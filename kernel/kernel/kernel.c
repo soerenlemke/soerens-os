@@ -59,6 +59,12 @@ void kernel_main(void)
 
     while (true)
     {
+        // TODO: how to determine if we should use vga or vbe mode?
+        // maybe we can check the multiboot info structure for framebuffer info?
+
+        // TODO: implement the vbe mode and
+        // we can display soerens os logo to use it in both vga and vbe mode.
+
         const uint8_t bg_color = color_index % num_colors;
         const uint8_t fg_color = (color_index + 8) % num_colors;
 
