@@ -41,7 +41,7 @@ static uint16_t* terminal_buffer;
  * @return A 16-bit value combining the character in the lower byte and color in the
  * upper byte.
  */
-static inline uint16_t vga_entry(unsigned char uc, uint8_t color)
+static uint16_t vga_entry(unsigned char uc, uint8_t color)
 {
     return (uint16_t)uc | (uint16_t)color << 8;
 }
