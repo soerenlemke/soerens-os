@@ -3,6 +3,7 @@
 ## Topics
 
 - [QEMU Boot Modes](qemu-boot.md)
+- [Multiboot Header](multiboot.md)
 
 ## General Resources
 
