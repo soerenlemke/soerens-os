@@ -8,7 +8,6 @@
  */
 
 #include <kernel/tty.h>
-#include <stdint.h>
 #include <string.h>
 
 /* ========================================================================
@@ -41,7 +40,7 @@ static uint16_t* terminal_buffer;
  * @return A 16-bit value combining the character in the lower byte and color in the
  * upper byte.
  */
-static uint16_t vga_entry(unsigned char uc, uint8_t color)
+static uint16_t vga_entry(const unsigned char uc, const uint8_t color)
 {
     return (uint16_t)uc | (uint16_t)color << 8;
 }
@@ -59,14 +58,14 @@ static void terminal_scroll(void)
     {
         for (size_t x = 0; x < VGA_WIDTH; x++)
         {
-            size_t from_index = (y + 1) * VGA_WIDTH + x;
-            size_t to_index = y * VGA_WIDTH + x;
+            const size_t from_index = (y + 1) * VGA_WIDTH + x;
+            const size_t to_index = y * VGA_WIDTH + x;
             terminal_buffer[to_index] = terminal_buffer[from_index];
         }
     }
     for (size_t x = 0; x < VGA_WIDTH; x++)
     {
-        size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
+        const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
         terminal_buffer[index] = vga_entry(' ', terminal_color);
     }
     terminal_row = VGA_HEIGHT - 1;
@@ -81,9 +80,9 @@ static void terminal_scroll(void)
  * @param x The x-coordinate (column).
  * @param y The y-coordinate (row).
  */
-static void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
+static void terminal_putentryat(const char c, const uint8_t color, const size_t x, const size_t y)
 {
-    size_t index = y * VGA_WIDTH + x;
+    const size_t index = y * VGA_WIDTH + x;
     terminal_buffer[index] = vga_entry(c, color);
 }
 
@@ -102,18 +101,18 @@ void terminal_initialize(void)
     {
         for (size_t x = 0; x < VGA_WIDTH; x++)
         {
-            size_t index = y * VGA_WIDTH + x;
+            const size_t index = y * VGA_WIDTH + x;
             terminal_buffer[index] = vga_entry(' ', terminal_color);
         }
     }
 }
 
-void terminal_setcolor(uint8_t color)
+void terminal_setcolor(const uint8_t color)
 {
     terminal_color = color;
 }
 
-void terminal_putchar(char c)
+void terminal_putchar(const char c)
 {
     if (c == '\n')
     {
@@ -141,7 +140,7 @@ void terminal_putchar(char c)
     }
 }
 
-void terminal_write(const char* data, size_t size)
+void terminal_write(const char* data, const size_t size)
 {
     for (size_t i = 0; i < size; i++)
     {

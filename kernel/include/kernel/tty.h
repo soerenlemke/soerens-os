@@ -44,7 +44,7 @@ enum vga_color
  * @param bg Background color.
  * @return Combined color byte.
  */
-static uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
+static uint8_t vga_entry_color(const enum vga_color fg, const enum vga_color bg)
 {
     return fg | bg << 4;
 }
