@@ -6,10 +6,10 @@
  * called by the bootloader after the system has been initialized.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <kernel/tty.h>
+
+#include "kernel/multiboot.h"
+#include "kernel/types.h"
 
 /* Check if the compiler thinks you are targeting the wrong operating system. */
 #if defined(__linux__)
@@ -22,29 +22,13 @@
 #endif
 
 /**
- * @brief Delay loop for visible animation.
- *
- * This is a simple busy-wait delay function used to slow down
- * animations so they are visible to the user.
- *
- * @param count Number of iterations to delay.
- */
-static void delay(uint32_t count)
-{
-    for (volatile uint32_t i = 0; i < count; i++)
-    {
-        /* volatile prevents compiler optimization */
-    }
-}
-
-/**
  * @brief Kernel main entry point.
  *
  * This is the entry point called by the bootloader. It initializes
  * the terminal and displays a simple animation demonstrating the
  * VGA text mode capabilities.
  */
-void kernel_main(void)
+void kernel_main(const uint32_t magic_number, const multiboot_info_t* mbi)
 {
     /* Initialize terminal interface */
     terminal_initialize();
@@ -53,48 +37,20 @@ void kernel_main(void)
     terminal_writestring("Welcome to SoerensOS!\n");
     terminal_writestring("=====================\n\n");
 
-    uint8_t color_index = 0;
-    const uint8_t num_colors = 16;
-    const uint32_t delay_count = 50000000;
-
-    while (true)
+    if (magic_number != MULTIBOOT_BOOTLOADER_MAGIC)
     {
-        // TODO: how to determine if we should use vga or vbe mode?
-        // maybe we can check the multiboot info structure for framebuffer info?
+        terminal_writestring("Invalid magic number: 0x\n");
+        return;
+    }
 
-        // TODO: implement the vbe mode and
-        // we can display soerens os logo to use it in both vga and vbe mode.
-
-        const uint8_t bg_color = color_index % num_colors;
-        const uint8_t fg_color = (color_index + 8) % num_colors;
-
-        terminal_setcolor(vga_entry_color(fg_color, bg_color));
-        terminal_writestring("   |    o\\\n");
-        terminal_writestring("|==|__    O\n");
-        terminal_writestring("|  'WW    /\\\n");
-        terminal_writestring("           /\\__\n");
-        terminal_writestring("           \\\n");
-        delay(delay_count);
-        terminal_initialize();
-
-        terminal_setcolor(vga_entry_color(bg_color, fg_color));
-        terminal_writestring("   | o\\\n");
-        terminal_writestring("|==|_  \\O/\n");
-        terminal_writestring("|  'WW  |\n");
-        terminal_writestring("         /\\\n");
-        terminal_writestring("        /  \\\n");
-        delay(delay_count);
-        terminal_initialize();
-
-        terminal_setcolor(vga_entry_color(fg_color, bg_color));
-        terminal_writestring("   |\n");
-        terminal_writestring("|==O\n");
-        terminal_writestring("|  |WW \\o/\n");
-        terminal_writestring("        |\n");
-        terminal_writestring("       / \\\n");
-        delay(delay_count);
-        terminal_initialize();
-
-        color_index++;
+    if (mbi->flags & MULTIBOOT_INFO_FRAMEBUFFER)
+    {
+        // TODO: implement VBE framebuffer driver
+        // TODO: think about a terminal abstraction layer that works with both vga & vbe
+        terminal_writestring("Framebuffer detected (VBE mode)");
+    }
+    else
+    {
+        terminal_writestring("No framebuffer detected, using VGA text mode");
     }
 }

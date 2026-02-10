@@ -33,3 +33,8 @@
 - added documentation for differences between QEMU `-kernel` mode and booting from ISO with GRUB
 - running make run now boots the ISO with GRUB, allowing for VBE framebuffer support in the future
 - running make run-text still uses `-kernel` mode for quick testing without GRUB, but without VBE support
+
+## 2026-02-10
+
+- GRUB Multiboot information structure for VBE framebuffer support
+- added types for kernel development (u8, u16, u32, usize, etc.)

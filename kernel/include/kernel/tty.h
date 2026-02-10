@@ -10,7 +10,7 @@
 #define _KERNEL_TTY_H
 
 #include <stddef.h>
-#include <stdint.h>
+#include "types.h"
 
 /**
  * @brief VGA color palette constants.
@@ -44,7 +44,7 @@ enum vga_color
  * @param bg Background color.
  * @return Combined color byte.
  */
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
+static uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg)
 {
     return fg | bg << 4;
 }
